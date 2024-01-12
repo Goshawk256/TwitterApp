@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twitter Data Visualization</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        #userComparisonSection label,
+        #userComparisonSection input,
+        #userComparisonSection button {
+          margin-top: 10px;
+        }
+
+        header {
+            background-color: #1DA1F2; /* Twitter mavi rengi */
+            color: #fff;
+            text-align: left;
+            padding: 10px;
+
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .button-container {
+            margin-top: 20px;
+            text-align: left;
+            position: relative;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-right: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: #fff;
+            font-size: 16px;
+            text-align: center;
+            text-decoration: none;
+        }
+        .compare-button-container {
+            margin-top: -60px;
+            margin-left: 300px;
+        }
+
+        #button1 { background-color: #E74C3C; }
+        #button2 { background-color: #3498DB; }
+        #button3 { background-color: #2ECC71; }
+        #button4 { background-color: #F39C12; }
+        #button5 { background-color: #9B59B6; }
+
+        .positioned-buttons {
+            position: absolute;
+            top: 100px;
+        }
+
+        .positioned-buttons:nth-child(4) { background-color: #722ecc; }
+        .positioned-buttons:nth-child(5) { background-color: #722ecc; }
+        .positioned-buttons:nth-child(6) { background-color: #722ecc; }
+
+        /* Add the following styles for interest containers */
+        .interest-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            background-color: #ccc; /* Set the background color to grey */
+            padding: 10px; /* Add padding for better visibility */
+        }
+
+        .interest-item {
+            margin-right: 20px;
+            font-weight: bold; /* Set the font to bold */
+        }
+
+        #compareButton {
+           
+            display: inline-block;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: #fff;
+            font-size: 16px;
+            text-align: center;
+            text-decoration: none;
+            background-color: #E74C3C; /* Kırmızı renk */
+        }
+        .followers-list-container {
+            display: flex;
+            margin-top: 20px; /* Listeleri biraz aşağıda tutmak için */
+        }
+
+        .followers-list {
+            flex: 1;
+            margin-right: 20px; /* İstediğiniz boşluk */
+            background-color: #853f3f; /* Arkaplan rengi */
+            padding: 10px; /* İçerik etrafındaki boşluk */
+            border-radius: 5px; /* Köşeleri yuvarlamak için */
+
+
+        
+        }
+
+        .followers-list p {
+            margin: 0;
+            font-weight: bold;
+        }
+
+        .followers-list ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .followers-list li {
+            margin-bottom: 5px;
+        }
+        .interest-list {
+            background-color: #284255; /* Bu rengi kendi tercihinize göre değiştirebilirsiniz */
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        .search-buttons-container {
+            margin-top: 10px;
+          }
+      
+          .search-button {
+            background-color: green;
+            color: white;
+            padding: 10px;
+            margin-right: 10px;
+            cursor: pointer;
+          }
+          .search-input-container {
+            margin-top: 10px;
+          }
+      
+          .search-label {
+            display: block;
+            margin-bottom: 5px;
+          }
+      
+          .search-input {
+            padding: 5px;
+            margin-bottom: 5px;
+          }
+      
+          .search-action-button {
+            background-color: blue;
+            color: white;
+            padding: 5px;
+            cursor: pointer;
+          }
+          .result-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f8f8f8;
+        }
+    
+        .highlight {
+            background-color: yellow;
+            font-weight: bold;
+        }
+        
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Twitter Data Visualization</h1>
+    </header>
+
+    <div class="button-container">
+        <button class="button" id="button1" onclick="openURL('http://localhost:3000')">Kullanıcı-Graf</button>
+        <button class="button" id="button2" onclick="createNewButtons()">İlgi Alanları</button>
+        <button class="button" id="button3" onclick="prepareUserComparison()">Kullanıcı Karşılaştırma</button>
+        <button class="button" id="button4" onclick="aramaYap()">Tweet İçeriği Arama</button>
+        <button class="button" id="button5" onclick="buttonClicked('Button 5')">Ağaç analizi</button>
+    </div>
+
+    <div id="userComparisonSection" class="positioned-buttons" style="display: none;">
+        <label for="username1">Kullanıcı 1:</label>
+        <input type="text" id="username1" placeholder="Kullanıcı adını girin" onkeyup="showMatchingUsers('username1')">
+        <div id="suggestions1"></div>
+    
+        <label for="username2">Kullanıcı 2:</label>
+        <input type="text" id="username2" placeholder="Kullanıcı adını girin" onkeyup="showMatchingUsers('username2')">
+        <div id="suggestions2"></div>
+    
+         <!-- Yeniden düzenlenmiş karşılaştır butonu -->
+         <div class="compare-button-container">
+            <button class="button" id="compareButton" onclick="compareUsers()">Karşılaştır</button>
+        </div>
+    
+        <div id="userMatchList" class="followers-list-container"></div>
+        <div id="commonInterestList" class="interest-list"></div>
+
+    </div>
+   
+        <div id="searchButtonsContainer" class="search-buttons-container" style="display: none;">
+        <button class="search-button" onclick="globalArama()">Global Arama</button>
+        <button class="search-button" onclick="yerelArama()">Yerel Arama</button>
+      </div>
+    
+      <div id="searchInputContainer" class="search-input-container" style="display: none;">
+        <label for="searchInput" class="search-label">Arama Kelimesi:</label>
+        <input type="text" id="searchInput" class="search-input">
+        <button class="search-action-button" onclick="ara()">Ara</button>
+      </div>
+
+    <script>
+       const ilgiAlanTablolari = {
+  'Futbol': {},
+  'Resim': {},
+  'Edebiyat': {},
+  'Sinema': {},
+  'Mimarlık': {},
+  'Moda': {},
+  'GorselSanatlar': {},
+  'Tarih': {},
+  'Gastronomi': {},
+  'Tiyatro': {},
+  'Dans': {},
+  'Basketbol': {},
+  'Tenis': {},
+  'Bilim': {},
+  'Yoga': {},
+  'Robotik': {},
+  'Astronomi': {},
+  'Fotografi': {},
+  'Girişimcilik': {},
+  'Psikoloji': {},
+  'Müzik Prodüksiyonu': {},
+  'Dijital Pazarlama': {},
+  'Eko-Turizm': {},
+  'Blockchain Teknolojisi': {},
+  'Sağlıklı Beslenme': {},
+  'Oyun Geliştirme': {}
+};
+
+        
+        function openURL(url) {
+            window.open(url, '_blank');
+        }
+        
+        
+        function createNewButtons() {
+            var buttonContainer = document.querySelector('.button-container');
+            var leftPosition = 0;
+        
+            for (var i = 1; i <= 3; i++) {
+                var newButton = document.createElement('button');
+                newButton.className = 'button positioned-buttons';
+                if (i == 1) {
+                    newButton.textContent = 'Direkt Listeleme';
+                    newButton.style.left = leftPosition + 'px';
+                    newButton.style.backgroundColor = '#722ecc';
+                    newButton.addEventListener('click', function () {
+                        clearScreen();
+                        listInterests();
+                    });
+        
+                    buttonContainer.appendChild(newButton);
+        
+                    leftPosition += 180;
+                }
+                if(i==2)
+                {
+                    newButton.textContent = 'Bölgesel Listeleme';
+                newButton.style.left = leftPosition + 'px';
+                newButton.style.backgroundColor = '#722ecc';
+
+                newButton.addEventListener('click', function () {
+                    clearScreen();
+                    listRegions();
+                });
+
+                buttonContainer.appendChild(newButton);
+
+                leftPosition += 200;
+                }
+                if(i==3)
+                {
+                    newButton.textContent = 'Dile Yönelik Listeleme';
+                    newButton.style.left = leftPosition + 'px';
+                    
+                    // Yeni butonlara yeşil renk atama
+                    newButton.style.backgroundColor = '#722ecc';
+                       
+                    newButton.addEventListener('click', function () {
+                      ListLanguages();
+                    });
+                    buttonContainer.appendChild(newButton);
+        
+                    leftPosition += 180; // İstediğiniz aralığı ayarlayabilirsiniz.
+                   
+                }
+            }
+        }
+        
+        function listInterests() {
+            var buttonContainer = document.querySelector('.button-container');
+        
+            for (var interest in ilgiAlanTablolari) {
+                var interestContainer = document.createElement('div');
+                interestContainer.className = 'interest-container';
+        
+                var interestItem = document.createElement('span');
+                interestItem.textContent = interest;
+                interestItem.className = 'interest-item';
+        
+                var userListButton = document.createElement('button');
+                userListButton.textContent = ' Kullanıcıları Listele';
+                userListButton.className = 'button';
+                userListButton.style.backgroundColor = '#3498DB'; // Choose a color for the button
+        
+                userListButton.addEventListener('click', createUserListHandler(interest));
+        
+                interestContainer.appendChild(interestItem);
+                interestContainer.appendChild(userListButton);
+        
+                buttonContainer.appendChild(interestContainer);
+            }
+        }
+
+
+        
+        function listRegions() {
+            // Fetch regions data from bolgeler.json
+            fetch("bolgeler.json")
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.bolgeler && data.bolgeler.length > 0) {
+                        var buttonContainer = document.querySelector('.button-container');
+                        var leftPosition = 0;
+                        var buttonsPerRow = 5; // Adjust this value as needed
+        
+                        data.bolgeler.forEach((region, index) => {
+                            // Create a button for each region
+                            var regionButton = document.createElement('button');
+                            regionButton.textContent = region.ad;
+                            regionButton.className = 'button positioned-buttons';
+                            regionButton.style.backgroundColor = '#3498DB'; // Choose a color for the button
+                            regionButton.style.left = leftPosition + 'px';
+                            regionButton.style.top = Math.floor(index / buttonsPerRow) * 40 + 'px'; // Adjust the vertical spacing
+        
+                            // Add click event handler to display interest areas and users
+                            regionButton.addEventListener('click', function () {
+                                clearScreen();
+                                listRegionDetails(region);
+                            });
+        
+                            // Append the button to the container
+                            buttonContainer.appendChild(regionButton);
+        
+                            leftPosition += 180; // Update this value to create space between buttons
+        
+                            if (index % buttonsPerRow === buttonsPerRow - 1) {
+                                leftPosition = 0; // Reset leftPosition for the next row
+                            }
+                        });
+                    } else {
+                        // Handle the case where the data is empty or invalid
+                        document.write('Invalid or empty regions data');
+                    }
+                });
+        }
+    
+        function listRegionDetails(region) {
+            // Display region details, interest areas, and users
+            document.write('<h2>' + region.ad + '</h2>');
+            document.write('<h3>Trend İlgi Alanı: ' + region.trend_ilgi_alani + '</h3>');
+    
+            if (region.ilgi_alanlari && region.ilgi_alanlari.length > 0) {
+                region.ilgi_alanlari.forEach(interestArea => {
+                    document.write('<div class="interest-container">');
+                    document.write('<span class="interest-item">' + interestArea.alan_adi + '</span>');
+                    document.write('<button class="button" style="background-color: #3498DB;" onclick="listUsers(\'' + interestArea.kullanicilar.join(', ') + '\')">Kullanıcıları Listele</button>');
+                    document.write('</div>');
+                });
+            } else {
+                document.write('No interest areas found for this region');
+            }
+        }
+    
+        function listUsers(users) {
+            // Display a list of users
+            document.write('<h3>Kullanıcılar:</h3>');
+            document.write('<ul>');
+            users.split(', ').forEach(user => {
+                document.write('<li>' + user + '</li>');
+            });
+            document.write('</ul>');
+        }
+        
+        function createUserListHandler(interest) {
+            return function () {
+                alert('Kullanıcıları Listele button clicked for ' + interest);
+                clearScreen();
+        
+                fetch("ilgialani.json")
+                    .then(response => response.json())
+                    .then(veri => {
+                        // Check if the interest exists in the JSON data
+                        if (veri && veri.length > 0) {
+                            // Find the item in the array with the matching interest
+                            var interestData = veri.find(item => item.alan === interest);
+        
+                            // Check if the interestData is found
+                            if (interestData) {
+                                // Convert the interestData to a formatted string
+                                var formattedData = JSON.stringify(interestData.kullanici, null, 2);
+        
+                                // Display the formatted string
+                                document.write('<pre>' + formattedData + '</pre>');
+                            } else {
+                                // Handle the case where the interest is not found
+                                document.write('No data found for ' + interest);
+                            }
+                        } else {
+                            // Handle the case where the JSON data is empty or invalid
+                            document.write('Invalid JSON data');
+                        }
+                    });
+            };
+        }
+
+        function ListLanguages() {
+            clearScreen();
+        
+            // 'diller.json' dosyasından veri çek
+            fetch('diller.json')
+                .then(response => response.json())
+                .then(data => {
+                    var buttonContainer = document.querySelector('.button-container');
+                    var languages = data.map(entry => entry.language);
+        
+                    languages.forEach(language => {
+                        var languageButton = document.createElement('button');
+                        languageButton.className = 'button';
+                        languageButton.textContent = language;
+        
+                        // Rastgele arkaplan rengi oluştur
+                        var randomColor = getRandomColor();
+                        languageButton.style.backgroundColor = randomColor;
+        
+                        languageButton.addEventListener('click', function () {
+                            toggleLanguageList(language, data);
+                        });
+        
+                        buttonContainer.appendChild(languageButton);
+                    });
+                })
+                .catch(error => console.error('Veri çekme hatası:', error));
+        }
+        
+        function toggleLanguageList(language, data) {
+            clearScreen();
+        
+            var languageEntry = data.find(entry => entry.language === language);
+            var userList = languageEntry.users;
+        
+            var userListContainer = document.createElement('div');
+            userListContainer.className = 'user-list-container';
+        
+            userList.forEach(user => {
+                var userEntry = document.createElement('div');
+                userEntry.className = 'user-entry';
+        
+                // Font'u bold yap
+                userEntry.style.fontWeight = 'bold';
+        
+                // Arka plan rengini gri yap
+                userEntry.style.backgroundColor = '#ccc';
+        
+                // Her bir satırın arasına boşluk ekle
+                userEntry.style.marginBottom = '5px';
+        
+                userEntry.textContent = user.name + ' (' + user.username + ')';
+                userListContainer.appendChild(userEntry);
+            });
+        
+            document.body.appendChild(userListContainer);
+        }
+        
+
+        function getRandomColor() {
+            // Rastgele bir renk üret
+            var letters = '0123456789ABCDEF';
+            var color = '#';
+            for (var i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+
+        function clearScreen() {
+            var buttonContainer = document.querySelector('.button-container');
+            while (buttonContainer.firstChild) {
+                buttonContainer.removeChild(buttonContainer.firstChild);
+            }
+        }
+        
+        function buttonClicked(buttonText) {
+            alert(buttonText + ' tıklandı!');
+        }
+   
+    
+
+        var data;
+
+fetch('data.json')
+    .then(response => response.json())
+    .then(jsonData => {
+        data = jsonData;
+    })
+    .catch(error => console.error('Hata:', error));
+
+    
+    function prepareUserComparison() {
+        clearScreen();
+        // Hide other sections
+        document.getElementById("userComparisonSection").style.display = "block";
+        // You can add additional logic for hiding other sections if needed
+    }
+    var interestData;
+
+    // Fetch interest data
+    fetch('ilgialani.json')
+        .then(response => response.json())
+        .then(jsonData => {
+            interestData = jsonData;
+        })
+        .catch(error => console.error('İlgi alanı verisi yüklenemedi:', error));
+
+        function findCommonInterest(username1, username2) {
+            var user1 = data.find(user => user.username === username1);
+            var user2 = data.find(user => user.username === username2);
+        
+            var commonInterest = [];
+        
+            if (user1 && user2) {
+                // Iterate through interest areas
+                interestData.forEach(interestArea => {
+                    var user1FollowersInArea = user1.followers.filter(follower => interestArea.kullanici.includes(follower));
+                    var user2FollowersInArea = user2.followers.filter(follower => interestArea.kullanici.includes(follower));
+        
+                    // Check if there are common followers in the interest area
+                    var commonFollowersInArea = user1FollowersInArea.filter(follower => user2FollowersInArea.includes(follower));
+        
+                    if (commonFollowersInArea.length > 0) {
+                        commonInterest.push({
+                            area: interestArea.alan,
+                            commonFollowers: commonFollowersInArea
+                        });
+                    }
+                });
+            }
+        
+            return commonInterest;
+        }
+        
+        function displayCommonInterest(commonInterestAreas) {
+            var userMatchListDiv = document.getElementById("userMatchList");
+        
+            commonInterestAreas.forEach(function (interestArea) {
+                var interestList = document.createElement("div");
+                interestList.classList.add("interest-list");
+        
+                var interestHeading = document.createElement("p");
+                interestHeading.textContent = "Ortak İlgi Alanı - " + interestArea.area;
+                interestList.appendChild(interestHeading);
+        
+                var interestUl = document.createElement("ul");
+        
+                interestArea.commonFollowers.forEach(function (follower) {
+                    var followerItem = document.createElement("li");
+                    followerItem.textContent = follower;
+                    interestUl.appendChild(followerItem);
+                });
+        
+                interestList.appendChild(interestUl);
+                userMatchListDiv.appendChild(interestList);
+            });
+        }
+        function compareUsers() {
+            var username1 = document.getElementById("username1").value;
+            var username2 = document.getElementById("username2").value;
+        
+            if (username1 && username2) {
+                // Get the matching users
+                var matchingUsers = getMatchingUsers(username1, username2);
+        
+                // Display the followers of matching users dynamically
+                displayFollowers(matchingUsers);
+        
+                // Find common interest areas
+                var commonInterestAreas = findCommonInterest(username1, username2);
+        
+                // Display common interest areas
+                displayCommonInterest(commonInterestAreas);
+            } else {
+                alert("Lütfen her iki kullanıcı adını da girin.");
+            }
+        }
+
+    function getMatchingUsers(user1, user2) {
+        var matchingUsers = [];
+
+        data.forEach(function (kullanici) {
+            if (kullanici.username === user1 || kullanici.username === user2) {
+                matchingUsers.push(kullanici);
+            }
+        });
+
+        return matchingUsers;
+    }
+    function displayFollowers(matchingUsers) {
+        var userMatchListDiv = document.getElementById("userMatchList");
+        userMatchListDiv.innerHTML = ""; // Clear previous content
+
+        matchingUsers.forEach(function (kullanici) {
+            var followersList = document.createElement("div");
+            followersList.classList.add("followers-list");
+
+            var followersHeading = document.createElement("p");
+            followersHeading.textContent = "Takipçileri - " + kullanici.username;
+            followersList.appendChild(followersHeading);
+
+            var followersUl = document.createElement("ul");
+
+            kullanici.followers.forEach(function (follower) {
+                var followerItem = document.createElement("li");
+                followerItem.textContent = follower;
+                followersUl.appendChild(followerItem);
+            });
+
+            followersList.appendChild(followersUl);
+            userMatchListDiv.appendChild(followersList);
+        });
+    }
+    
+      
+    
+        function displayMatchingUsers(matchingUsers) {
+            var userMatchListDiv = document.getElementById("userMatchList");
+            userMatchListDiv.innerHTML = ""; // Clear previous content
+    
+            if (matchingUsers.length > 0) {
+                var listHeading = document.createElement("p");
+                listHeading.textContent = "Eşleşen Kullanıcılar:";
+                userMatchListDiv.appendChild(listHeading);
+    
+                var ul = document.createElement("ul");
+    
+                matchingUsers.forEach(function (kullanici) {
+                    var li = document.createElement("li");
+                    li.textContent = kullanici;
+                    ul.appendChild(li);
+                });
+    
+                userMatchListDiv.appendChild(ul);
+            } else {
+                var noMatchMessage = document.createElement("p");
+                noMatchMessage.textContent = "Eşleşen kullanıcı bulunamadı.";
+                userMatchListDiv.appendChild(noMatchMessage);
+            }
+        }
+    
+        function showMatchingUsers(inputId) {
+            var inputElement = document.getElementById(inputId);
+            var inputValue = inputElement.value.toLowerCase();
+            var suggestionsDiv = document.getElementById("suggestions" + inputId.charAt(inputId.length - 1));
+            suggestionsDiv.innerHTML = ""; // Clear previous suggestions
+        
+            if (data) {
+                data.forEach(function (kullanici) {
+                    if (kullanici.username.toLowerCase().includes(inputValue)) {
+                        var suggestion = document.createElement("div");
+                        suggestion.textContent = kullanici.username;
+                        suggestion.onclick = function () {
+                            inputElement.value = kullanici.username;
+                            suggestionsDiv.innerHTML = "";
+                        };
+                        suggestionsDiv.appendChild(suggestion);
+                    }
+                });
+            } else {
+                console.error('JSON verisi yüklenmedi.');
+            }
+        }
+
+        function aramaYap() {
+            // Tweet içeriği arama butonuna tıklandığında yapılacak işlemler
+            // Ekranı temizle
+            clearScreen();
+      
+            // Global ve Local arama butonlarını göster
+            document.getElementById('searchButtonsContainer').style.display = 'block';
+          }
+      
+          function globalArama() {
+            // Global arama butonuna tıklandığında yapılacak işlemler
+            // Arama giriş alanını göster
+            document.getElementById('searchInputContainer').style.display = 'block';
+          }
+      
+          function yerelArama() {
+            // Local arama butonuna tıklandığında yapılacak işlemler
+            // Hide global search elements if they exist
+            document.getElementById('searchInputContainer').style.display = 'none';
+          
+            // Create input fields and LocalAra button
+            var localLabelsContainer = document.createElement('div');
+            localLabelsContainer.id = 'localLabelsContainer';
+          
+            var label1 = document.createElement('label');
+            label1.innerHTML = 'Kullanıcı:';
+            label1.style.display = 'block'; // Set display to block to ensure vertical arrangement
+            localLabelsContainer.appendChild(label1);
+          
+            var input1 = document.createElement('input');
+            input1.type = 'text'; // Set the input type to text
+            input1.placeholder = 'Enter username';
+            input1.style.display = 'block'; // Set display to block to ensure vertical arrangement
+            localLabelsContainer.appendChild(input1);
+          
+            // Add some space between the elements
+            localLabelsContainer.appendChild(document.createElement('br'));
+          
+            var label2 = document.createElement('label');
+            label2.innerHTML = 'Tweet Anahtar Kelime:';
+            label2.style.display = 'block'; // Set display to block to ensure vertical arrangement
+            localLabelsContainer.appendChild(label2);
+          
+            var input2 = document.createElement('input');
+            input2.type = 'text'; // Set the input type to text
+            input2.placeholder = 'Enter keyword';
+            input2.style.display = 'block'; // Set display to block to ensure vertical arrangement
+            localLabelsContainer.appendChild(input2);
+          
+            // Add some space between the elements
+            localLabelsContainer.appendChild(document.createElement('br'));
+          
+            var localAraButton = document.createElement('button');
+            localAraButton.innerHTML = 'LclAra';
+            localAraButton.onclick = lclAra;
+            localLabelsContainer.appendChild(localAraButton);
+          
+            // Append the local search elements to the body
+            document.body.appendChild(localLabelsContainer);
+          }
+          
+          
+          function lclAra() {
+            // Get the username from input1
+            var username = document.getElementById('localLabelsContainer').getElementsByTagName('input')[0].value;
+        
+            // Fetch JSON data from data.json
+            fetch('data.json')
+                .then(response => response.json())
+                .then(jsonData => {
+                    // Find the user with the specified username
+                    var user = jsonData.find(u => u.username === username);
+        
+                    if (user) {
+                        // Get the keyword from input2
+                        var keyword = document.getElementById('localLabelsContainer').getElementsByTagName('input')[1].value;
+        
+                        // Clear previous results
+                        var searchResultsContainer = document.getElementById('searchResultsContainer');
+                        if (!searchResultsContainer) {
+                            // Create the container if it doesn't exist
+                            searchResultsContainer = document.createElement('div');
+                            searchResultsContainer.id = 'searchResultsContainer';
+                            document.body.appendChild(searchResultsContainer);
+                        } else {
+                            // Clear existing content
+                            searchResultsContainer.innerHTML = '';
+                        }
+        
+                        // Iterate through the user's tweets
+                        user.tweets.forEach(function (tweet) {
+                            // Check if the keyword exists in the tweet
+                            if (tweet.includes(keyword)) {
+                                // Display username, name, and tweet in a styled list
+                                var resultItem = document.createElement('div');
+                                resultItem.className = 'result-item';
+                                resultItem.innerHTML = '<strong>' + user.username + ' (' + user.name + ')</strong>: ' + formatTweet(tweet, keyword);
+                                searchResultsContainer.appendChild(resultItem);
+                            }
+                        });
+                    } else {
+                        // Display a message if the username is not found
+                        alert('Kullanıcı bulunamadı.');
+                    }
+                })
+                .catch(error => console.error('Error fetching data.json:', error));
+        }
+        
+        function formatTweet(tweet, keyword) {
+            // Highlight the keyword in the tweet
+            var formattedTweet = tweet.replace(new RegExp(keyword, 'gi'), match => '<span class="highlight">' + match + '</span>');
+            return formattedTweet;
+        }
+        
+      
+        function ara() {
+            // "Ara" button is clicked
+            var searchKeyword = document.getElementById('searchInput').value;
+        
+            // Fetch JSON data from data.json
+            fetch('data.json')
+                .then(response => response.json())
+                .then(jsonData => {
+                    // Clear previous search results
+                    document.body.innerHTML = '';
+        
+                    // Display the search results
+                    var resultsContainer = document.createElement('div');
+                    resultsContainer.id = 'searchResultsContainer';
+                    document.body.appendChild(resultsContainer);
+        
+                    jsonData.forEach(function (user) {
+                        // Iterate through each user
+                        user.tweets.forEach(function (tweet) {
+                            // Check if the search keyword exists in the tweet
+                            if (tweet.includes(searchKeyword)) {
+                                // Display username and tweet in a list with highlighted keyword
+                                var resultItem = document.createElement('div');
+                                resultItem.innerHTML = '<strong>' + user.username + '</strong>: ' + highlightKeyword(tweet, searchKeyword);
+                                resultsContainer.appendChild(resultItem);
+                            }
+                        });
+                    });
+                })
+                .catch(error => console.error('Error fetching data.json:', error));
+        }
+        
+        function highlightKeyword(tweet, keyword) {
+            // Highlight the keyword in the tweet
+            return tweet.replace(new RegExp(keyword, 'gi'), match => '<span class="highlight">' + match + '</span>');
+        }
+    </script>
+</body>
+</html>
